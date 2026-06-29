@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { PencilIcon } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
@@ -8,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import PageHeader from '@/components/app/PageHeader.vue'
+import ListTransition from '@/components/app/ListTransition.vue'
+import DeleteFamilyDialog from '@/components/app/DeleteFamilyDialog.vue'
 import { MEMBER_ROLES } from '@/types'
 import type { FamilyMember, MemberRole } from '@/types'
 import { useAuthStore } from '@/stores/auth.store'
@@ -19,6 +22,12 @@ const family = useFamilyStore()
 const invites = useInvitesStore()
 
 const ROLE_LABELS: Record<MemberRole, string> = { admin: 'Admin', member: 'Membro' }
+
+const router = useRouter()
+const deleteOpen = ref(false)
+function onFamilyDeleted(): void {
+  void router.push({ name: 'dashboard' })
+}
 
 onMounted(() => {
   if (family.familyId) {
@@ -149,7 +158,7 @@ async function removeInvite(id: string): Promise<void> {
     <!-- Membri -->
     <section class="space-y-3">
       <h2 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Membri</h2>
-      <div class="space-y-2.5">
+      <ListTransition>
         <div
           v-for="m in family.members"
           :key="m.id"
@@ -197,7 +206,7 @@ async function removeInvite(id: string): Promise<void> {
             </template>
           </div>
         </div>
-      </div>
+      </ListTransition>
     </section>
 
     <!-- Inviti -->
@@ -237,7 +246,7 @@ async function removeInvite(id: string): Promise<void> {
         </p>
       </div>
 
-      <div v-if="pendingInvites.length" class="space-y-2.5">
+      <ListTransition v-if="pendingInvites.length">
         <div
           v-for="inv in pendingInvites"
           :key="inv.id"
@@ -273,8 +282,24 @@ async function removeInvite(id: string): Promise<void> {
             </template>
           </div>
         </div>
-      </div>
+      </ListTransition>
       <p v-else class="px-1 text-sm text-muted-foreground">Nessun invito in attesa.</p>
     </section>
+
+    <!-- Zona pericolo -->
+    <section class="space-y-3">
+      <h2 class="text-xs font-semibold uppercase tracking-wide text-destructive">Zona pericolo</h2>
+      <div class="rounded-2xl border border-destructive/30 bg-destructive/5 p-3">
+        <p class="text-sm text-muted-foreground">
+          Elimina definitivamente questa famiglia e tutti i suoi dati. L'operazione non è
+          reversibile.
+        </p>
+        <Button variant="destructive" class="mt-3 h-11 w-full" @click="deleteOpen = true">
+          Elimina famiglia
+        </Button>
+      </div>
+    </section>
+
+    <DeleteFamilyDialog v-model:open="deleteOpen" @deleted="onFamilyDeleted" />
   </div>
 </template>

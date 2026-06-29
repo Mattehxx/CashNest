@@ -4,7 +4,7 @@ import type { RecurringExpense } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import EntityAvatar from './EntityAvatar.vue'
 import { formatCurrency } from '@/composables/useCurrency'
-import { frequencyLabel } from '@/composables/useFrequency'
+import { frequencyLabel, toMonthlyAmount } from '@/composables/useFrequency'
 import { useAccountsStore } from '@/stores/accounts.store'
 import { useCategoriesStore } from '@/stores/categories.store'
 
@@ -35,6 +35,11 @@ const account = computed(() => accounts.items.find((a) => a.id === props.item.ac
         {{ frequencyLabel(item.frequency) }}<span v-if="account"> · {{ account.name }}</span>
       </p>
     </div>
-    <p class="shrink-0 font-semibold tabular-nums">{{ formatCurrency(item.amount) }}</p>
+    <div class="shrink-0 text-right">
+      <p class="font-semibold tabular-nums">{{ formatCurrency(item.amount) }}</p>
+      <p v-if="item.frequency !== 'mensile'" class="text-xs text-muted-foreground tabular-nums">
+        ≈ {{ formatCurrency(toMonthlyAmount(item.amount, item.frequency)) }}/mese
+      </p>
+    </div>
   </button>
 </template>

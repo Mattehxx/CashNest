@@ -4,6 +4,10 @@ import { Toaster } from '@/components/ui/sonner'
 </script>
 
 <template>
-  <RouterView />
-  <Toaster position="top-center" rich-colors :duration="3000" />
+  <RouterView v-slot="{ Component }">
+    <Transition name="fade" mode="out-in">
+      <component :is="Component" />
+    </Transition>
+  </RouterView>
+  <Toaster position="top-center" rich-colors close-button :duration="3500" />
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { EyeIcon, EyeOffIcon, LoaderCircleIcon } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
@@ -18,21 +18,28 @@ const fullName = ref('')
 const showPassword = ref(false)
 
 async function submit(): Promise<void> {
-  if (!email.value.trim() || !password.value) {
-    toast.error('Inserisci email e password.')
+  const mail = email.value.trim()
+  if (!mail) {
+    toast.error('Inserisci la tua email.')
+    return
+  }
+  if (!password.value) {
+    toast.error('Inserisci la password.')
+    return
+  }
+  if (mode.value === 'signup' && password.value.length < 6) {
+    toast.error('La password deve avere almeno 6 caratteri.')
     return
   }
   try {
     if (mode.value === 'signin') {
-      await auth.signIn(email.value.trim(), password.value)
+      await auth.signIn(mail, password.value)
+      toast.success('Bentornato!')
       await router.push({ name: 'dashboard' })
     } else {
-      const user = await auth.signUp(
-        email.value.trim(),
-        password.value,
-        fullName.value.trim() || undefined,
-      )
+      const user = await auth.signUp(mail, password.value, fullName.value.trim() || undefined)
       if (user) {
+        toast.success('Account creato. Benvenuto in CashNest!')
         await router.push({ name: 'dashboard' })
       } else {
         toast.success('Registrazione completata! Conferma l’email, poi accedi.')
@@ -103,6 +110,15 @@ function toggleMode(): void {
                 <component :is="showPassword ? EyeOffIcon : EyeIcon" class="size-5" />
               </button>
             </div>
+          </div>
+
+          <div v-if="mode === 'signin'" class="text-right">
+            <RouterLink
+              :to="{ name: 'forgot-password' }"
+              class="text-sm font-medium text-primary"
+            >
+              Password dimenticata?
+            </RouterLink>
           </div>
 
           <Button type="submit" class="h-12 w-full text-base" :disabled="auth.loading">

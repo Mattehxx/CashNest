@@ -7,6 +7,7 @@ import PageHeader from '@/components/app/PageHeader.vue'
 import EmptyState from '@/components/app/EmptyState.vue'
 import CategoryCard from '@/components/app/CategoryCard.vue'
 import CategoryFormDialog from '@/components/app/CategoryFormDialog.vue'
+import ListTransition from '@/components/app/ListTransition.vue'
 import type { Category } from '@/types'
 import { useCategoriesStore } from '@/stores/categories.store'
 
@@ -38,14 +39,14 @@ function openEdit(category: Category): void {
       <Skeleton v-for="i in 6" :key="i" class="h-[68px] w-full rounded-2xl" />
     </div>
 
-    <div v-else-if="categories.items.length" class="space-y-2.5">
+    <ListTransition v-else-if="categories.items.length">
       <CategoryCard
         v-for="category in categories.items"
         :key="category.id"
         :category="category"
         @select="openEdit(category)"
       />
-    </div>
+    </ListTransition>
 
     <EmptyState
       v-else

@@ -1,6 +1,7 @@
-import type { FamilyMember, MemberRole } from '@/types'
+import type { Family, FamilyMember, MemberRole } from '@/types'
 import { supabase } from './client'
 import type { CurrentFamily, FamilyRepository } from '../ports'
+import type { FamilyRow } from './database.types'
 
 interface CurrentFamilyJoinRow {
   role: string
@@ -23,26 +24,51 @@ interface MemberJoinRow {
 
 export function createSupabaseFamilyRepository(): FamilyRepository {
   return {
-    async getCurrent(): Promise<CurrentFamily | null> {
+    async listMine(): Promise<CurrentFamily[]> {
       const { data: userData } = await supabase.auth.getUser()
       const user = userData.user
-      if (!user) return null
+      if (!user) return []
 
       const { data, error } = await supabase
         .from('family_members')
         .select('role, families(*)')
         .eq('profile_id', user.id)
         .order('created_at', { ascending: true })
-        .limit(1)
-        .maybeSingle()
       if (error) throw new Error(error.message)
 
-      const row = data as unknown as CurrentFamilyJoinRow | null
-      if (!row || !row.families) return null
-      return {
-        family: { id: row.families.id, name: row.families.name, createdAt: row.families.created_at },
-        role: row.role as MemberRole,
-      }
+      return ((data ?? []) as unknown as CurrentFamilyJoinRow[])
+        .map((row) =>
+          row.families
+            ? {
+                family: {
+                  id: row.families.id,
+                  name: row.families.name,
+                  createdAt: row.families.created_at,
+                },
+                role: row.role as MemberRole,
+              }
+            : null,
+        )
+        .filter((x): x is CurrentFamily => x !== null)
+    },
+
+    async create(name: string): Promise<Family> {
+      const { data, error } = await supabase.rpc('create_family', { p_name: name })
+      if (error) throw new Error(error.message)
+      const id = data as string
+      const { data: famData, error: famError } = await supabase
+        .from('families')
+        .select('*')
+        .eq('id', id)
+        .single()
+      if (famError) throw new Error(famError.message)
+      const fam = famData as FamilyRow
+      return { id: fam.id, name: fam.name, createdAt: fam.created_at }
+    },
+
+    async claimInvites(): Promise<void> {
+      const { error } = await supabase.rpc('claim_pending_invites')
+      if (error) throw new Error(error.message)
     },
 
     async getMembers(familyId: string): Promise<FamilyMember[]> {
@@ -84,6 +110,11 @@ export function createSupabaseFamilyRepository(): FamilyRepository {
 
     async removeMember(memberId) {
       const { error } = await supabase.from('family_members').delete().eq('id', memberId)
+      if (error) throw new Error(error.message)
+    },
+
+    async delete(familyId) {
+      const { error } = await supabase.from('families').delete().eq('id', familyId)
       if (error) throw new Error(error.message)
     },
   }

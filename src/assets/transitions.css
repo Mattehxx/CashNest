@@ -1,0 +1,86 @@
+/* CashNest — transizioni globali
+   Fluide e in linea con gli standard moderni: solo transform/opacity (GPU),
+   durate brevi, easing morbido. Rispettano prefers-reduced-motion. */
+
+:root {
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---- Pagine / route (cambio scheda) ---- */
+.page-enter-active {
+  transition:
+    opacity 0.22s var(--ease-out-soft),
+    transform 0.22s var(--ease-out-soft);
+}
+.page-leave-active {
+  transition:
+    opacity 0.14s var(--ease-in-out-soft),
+    transform 0.14s var(--ease-in-out-soft);
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* ---- Fade (cambio contesto: login <-> app) ---- */
+.fade-enter-active {
+  transition: opacity 0.25s var(--ease-out-soft);
+}
+.fade-leave-active {
+  transition: opacity 0.18s var(--ease-in-out-soft);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ---- Liste (TransitionGroup): entrata/uscita + riordino ---- */
+.list-enter-active {
+  transition:
+    opacity 0.28s var(--ease-out-soft),
+    transform 0.28s var(--ease-out-soft);
+}
+.list-leave-active {
+  transition:
+    opacity 0.2s var(--ease-in-out-soft),
+    transform 0.2s var(--ease-in-out-soft);
+  position: absolute;
+  width: 100%;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: scale(0.985);
+}
+.list-move {
+  transition: transform 0.28s var(--ease-out-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active,
+  .fade-enter-active,
+  .fade-leave-active,
+  .list-enter-active,
+  .list-leave-active,
+  .list-move {
+    transition: none !important;
+  }
+  .page-enter-from,
+  .page-leave-to,
+  .fade-enter-from,
+  .fade-leave-to,
+  .list-enter-from,
+  .list-leave-to {
+    opacity: 1;
+    transform: none !important;
+  }
+}

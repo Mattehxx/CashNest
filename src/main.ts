@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './style.css'
+import './assets/transitions.css'
 import App from './App.vue'
 import router from './router'
 import { createSupabaseDataLayer, provideDataLayer } from './services'
