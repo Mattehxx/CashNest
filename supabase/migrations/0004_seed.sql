@@ -7,13 +7,10 @@ insert into public.families (id, name)
 values ('00000000-0000-0000-0000-0000000000c1', 'Famiglia Rovellini')
 on conflict (id) do nothing;
 
--- ---------- Inviti (allow-list) ----------
--- Aggiorna le email reali di Stefano/Sabina/Sara quando disponibili.
+-- ---------- Invito admin (allow-list) ----------
+-- Gli altri membri si aggiungono dall'app (sezione Gestione).
 insert into public.family_invites (family_id, email, role) values
-  ('00000000-0000-0000-0000-0000000000c1', 'mrovellini@hortus.it', 'admin'),
-  ('00000000-0000-0000-0000-0000000000c1', 'stefano@example.com', 'member'),
-  ('00000000-0000-0000-0000-0000000000c1', 'sabina@example.com', 'member'),
-  ('00000000-0000-0000-0000-0000000000c1', 'sara@example.com', 'member')
+  ('00000000-0000-0000-0000-0000000000c1', 'teorove04@gmail.com', 'admin')
 on conflict (family_id, email) do nothing;
 
 -- ---------- Categorie di default ----------

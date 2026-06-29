@@ -4,6 +4,8 @@ import type {
   CategoriesRepository,
   ExpensesRepository,
   FamilyRepository,
+  InvitesRepository,
+  ProfileRepository,
   RealtimePort,
   RecurringExpensesRepository,
 } from './ports'
@@ -12,6 +14,8 @@ import { createSupabaseAuth } from './supabase/auth.supabase'
 import { createSupabaseCategoriesRepository } from './supabase/categories.supabase'
 import { createSupabaseExpensesRepository } from './supabase/expenses.supabase'
 import { createSupabaseFamilyRepository } from './supabase/family.supabase'
+import { createSupabaseInvitesRepository } from './supabase/invites.supabase'
+import { createSupabaseProfileRepository } from './supabase/profile.supabase'
 import { createSupabaseRealtime } from './supabase/realtime.supabase'
 import { createSupabaseRecurringExpensesRepository } from './supabase/recurring-expenses.supabase'
 
@@ -27,6 +31,8 @@ export interface DataLayer {
   categories: CategoriesRepository
   recurringExpenses: RecurringExpensesRepository
   expenses: ExpensesRepository
+  invites: InvitesRepository
+  profile: ProfileRepository
   realtime: RealtimePort
 }
 
@@ -39,6 +45,8 @@ export function createSupabaseDataLayer(): DataLayer {
     categories: createSupabaseCategoriesRepository(),
     recurringExpenses: createSupabaseRecurringExpensesRepository(),
     expenses: createSupabaseExpensesRepository(),
+    invites: createSupabaseInvitesRepository(),
+    profile: createSupabaseProfileRepository(),
     realtime: createSupabaseRealtime(),
   }
 }

@@ -52,11 +52,31 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
   }
 
+  async function resetPassword(email: string): Promise<void> {
+    await useServices().auth.resetPassword(email)
+  }
+
+  async function updatePassword(newPassword: string): Promise<void> {
+    await useServices().auth.updatePassword(newPassword)
+  }
+
   function dispose(): void {
     unsubscribe?.()
     unsubscribe = null
     initialized.value = false
   }
 
-  return { user, initialized, loading, isAuthenticated, init, signIn, signUp, signOut, dispose }
+  return {
+    user,
+    initialized,
+    loading,
+    isAuthenticated,
+    init,
+    signIn,
+    signUp,
+    signOut,
+    resetPassword,
+    updatePassword,
+    dispose,
+  }
 })

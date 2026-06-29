@@ -51,6 +51,18 @@ export function createSupabaseAuth(): AuthPort {
       if (error) throw new Error(error.message)
     },
 
+    async resetPassword(email) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      if (error) throw new Error(translateAuthError(error.message))
+    },
+
+    async updatePassword(newPassword) {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw new Error(translateAuthError(error.message))
+    },
+
     onAuthChange(callback) {
       const { data } = supabase.auth.onAuthStateChange((_event, session) => {
         callback(toUser(session?.user))

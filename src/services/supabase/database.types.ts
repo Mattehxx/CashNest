@@ -12,7 +12,17 @@ export interface FamilyRow {
 export interface ProfileRow {
   id: string
   full_name: string | null
+  email: string | null
   avatar: string | null
+  created_at: string
+}
+
+export interface FamilyInviteRow {
+  id: string
+  family_id: string
+  email: string
+  role: string
+  accepted_at: string | null
   created_at: string
 }
 

@@ -1,6 +1,7 @@
 export * from './enums'
 export * from './family'
 export * from './profile'
+export * from './family-invite'
 export * from './account'
 export * from './category'
 export * from './recurring-expense'

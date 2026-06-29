@@ -343,13 +343,10 @@ insert into public.families (id, name)
 values ('00000000-0000-0000-0000-0000000000c1', 'Famiglia Rovellini')
 on conflict (id) do nothing;
 
--- ---------- Inviti (allow-list) ----------
--- Aggiorna le email reali di Stefano/Sabina/Sara quando disponibili.
+-- ---------- Invito admin (allow-list) ----------
+-- Gli altri membri si aggiungono dall'app (sezione Gestione).
 insert into public.family_invites (family_id, email, role) values
-  ('00000000-0000-0000-0000-0000000000c1', 'mrovellini@hortus.it', 'admin'),
-  ('00000000-0000-0000-0000-0000000000c1', 'stefano@example.com', 'member'),
-  ('00000000-0000-0000-0000-0000000000c1', 'sabina@example.com', 'member'),
-  ('00000000-0000-0000-0000-0000000000c1', 'sara@example.com', 'member')
+  ('00000000-0000-0000-0000-0000000000c1', 'teorove04@gmail.com', 'admin')
 on conflict (family_id, email) do nothing;
 
 -- ---------- Categorie di default ----------
@@ -394,5 +391,147 @@ alter table public.accounts replica identity full;
 alter table public.categories replica identity full;
 alter table public.recurring_expenses replica identity full;
 alter table public.expenses replica identity full;
+
+
+-- ============================================================
+-- 0006_profile_email.sql
+-- ============================================================
+-- CashNest — 0006 Email nel profilo
+-- Serve a mostrare l'email dei membri nella gestione utenti in-app.
+
+alter table public.profiles add column if not exists email text;
+
+-- Backfill dalle utenze esistenti.
+update public.profiles p
+set email = u.email
+from auth.users u
+where u.id = p.id and p.email is null;
+
+-- Aggiorna il trigger di onboarding per popolare anche l'email.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  insert into public.profiles (id, full_name, email, avatar)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'full_name', new.email),
+    new.email,
+    new.raw_user_meta_data ->> 'avatar'
+  );
+
+  insert into public.family_members (family_id, profile_id, role)
+  select i.family_id, new.id, i.role
+  from public.family_invites i
+  where lower(i.email) = lower(new.email)
+    and i.accepted_at is null;
+
+  update public.family_invites
+  set accepted_at = now()
+  where lower(email) = lower(new.email)
+    and accepted_at is null;
+
+  return new;
+end;
+$$;
+
+
+-- ============================================================
+-- 0007_multifamily.sql
+-- ============================================================
+-- CashNest — 0007 Multi-famiglia
+-- RPC per creare famiglie e agganciare gli inviti in attesa (utenti già esistenti).
+-- La RLS esistente supporta già lettura/scrittura su più famiglie.
+
+-- Crea una famiglia e rende il chiamante admin di essa (atomico, bypassa la RLS).
+create or replace function public.create_family(p_name text)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := (select auth.uid());
+  v_family_id uuid;
+begin
+  if v_uid is null then
+    raise exception 'Non autenticato';
+  end if;
+  if coalesce(btrim(p_name), '') = '' then
+    raise exception 'Nome famiglia mancante';
+  end if;
+
+  insert into public.families (name) values (btrim(p_name)) returning id into v_family_id;
+
+  insert into public.family_members (family_id, profile_id, role)
+  values (v_family_id, v_uid, 'admin');
+
+  -- Categorie di default per la nuova famiglia.
+  insert into public.categories (family_id, name, icon, color) values
+    (v_family_id, 'Alimentari', 'utensils', '#22c55e'),
+    (v_family_id, 'Casa', 'house', '#3b82f6'),
+    (v_family_id, 'Auto', 'car', '#ef4444'),
+    (v_family_id, 'Assicurazioni', 'shield', '#6366f1'),
+    (v_family_id, 'Bollette', 'zap', '#f59e0b'),
+    (v_family_id, 'Salute', 'heart-pulse', '#ec4899'),
+    (v_family_id, 'Tempo libero', 'gamepad', '#a855f7'),
+    (v_family_id, 'Abbonamenti', 'repeat', '#14b8a6');
+
+  return v_family_id;
+end;
+$$;
+
+grant execute on function public.create_family(text) to authenticated;
+
+-- Aggancia l'utente corrente a tutti gli inviti in attesa per la sua email.
+create or replace function public.claim_pending_invites()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := (select auth.uid());
+  v_email text;
+begin
+  if v_uid is null then
+    return;
+  end if;
+
+  select email into v_email from auth.users where id = v_uid;
+  if v_email is null then
+    return;
+  end if;
+
+  insert into public.family_members (family_id, profile_id, role)
+  select i.family_id, v_uid, i.role
+  from public.family_invites i
+  where lower(i.email) = lower(v_email)
+    and i.accepted_at is null
+  on conflict (family_id, profile_id) do nothing;
+
+  update public.family_invites
+  set accepted_at = now()
+  where lower(email) = lower(v_email)
+    and accepted_at is null;
+end;
+$$;
+
+grant execute on function public.claim_pending_invites() to authenticated;
+
+
+-- ============================================================
+-- 0008_delete_family.sql
+-- ============================================================
+-- CashNest — 0008 Eliminazione famiglia (solo admin)
+-- I dati collegati (membri, conti, categorie, ricorrenti, spese, inviti) vengono
+-- rimossi a cascata dalle FK con ON DELETE CASCADE definite in 0001/0003.
+
+create policy families_delete on public.families
+  for delete to authenticated
+  using ((select app.is_family_admin(id)));
 
 

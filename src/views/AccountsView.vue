@@ -7,10 +7,13 @@ import PageHeader from '@/components/app/PageHeader.vue'
 import EmptyState from '@/components/app/EmptyState.vue'
 import AccountCard from '@/components/app/AccountCard.vue'
 import AccountFormDialog from '@/components/app/AccountFormDialog.vue'
+import ListTransition from '@/components/app/ListTransition.vue'
 import type { Account } from '@/types'
 import { useAccountsStore } from '@/stores/accounts.store'
+import { useRecurringInsights } from '@/composables/useRecurringInsights'
 
 const accounts = useAccountsStore()
+const { monthlyByAccountId } = useRecurringInsights()
 const dialogOpen = ref(false)
 const selected = ref<Account | null>(null)
 
@@ -38,14 +41,15 @@ function openEdit(account: Account): void {
       <Skeleton v-for="i in 4" :key="i" class="h-[68px] w-full rounded-2xl" />
     </div>
 
-    <div v-else-if="accounts.items.length" class="space-y-2.5">
+    <ListTransition v-else-if="accounts.items.length">
       <AccountCard
         v-for="account in accounts.items"
         :key="account.id"
         :account="account"
+        :monthly-total="monthlyByAccountId.get(account.id) ?? 0"
         @select="openEdit(account)"
       />
-    </div>
+    </ListTransition>
 
     <EmptyState
       v-else

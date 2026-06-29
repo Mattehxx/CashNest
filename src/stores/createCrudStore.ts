@@ -16,7 +16,7 @@ interface Identifiable {
 export function createCrudStore<T extends Identifiable, TInput>(
   id: string,
   selectRepo: (services: DataLayer) => CrudRepository<T, TInput>,
-  table: RealtimeTable,
+  table?: RealtimeTable,
 ) {
   return defineStore(id, () => {
     const items = ref<T[]>([]) as Ref<T[]>
@@ -67,6 +67,7 @@ export function createCrudStore<T extends Identifiable, TInput>(
 
     /** Si abbona alle modifiche Realtime della tabella. Restituisce la disiscrizione. */
     function subscribeRealtime(familyId: string): () => void {
+      if (!table) return () => {}
       return useServices().realtime.subscribe<T>(table, familyId, (change) => {
         if (change.type === 'DELETE') {
           if (change.oldId) removeLocal(change.oldId)

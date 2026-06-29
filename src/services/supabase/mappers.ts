@@ -7,10 +7,19 @@ import type {
   Expense,
   ExpenseFrequency,
   ExpenseInput,
+  FamilyInvite,
+  FamilyInviteInput,
+  MemberRole,
   RecurringExpense,
   RecurringExpenseInput,
 } from '@/types'
-import type { AccountRow, CategoryRow, ExpenseRow, RecurringExpenseRow } from './database.types'
+import type {
+  AccountRow,
+  CategoryRow,
+  ExpenseRow,
+  FamilyInviteRow,
+  RecurringExpenseRow,
+} from './database.types'
 
 /* ---------- Accounts ---------- */
 export function toAccount(r: AccountRow): Account {
@@ -136,5 +145,28 @@ export function expenseUpdate(i: Partial<ExpenseInput>): Record<string, unknown>
   if (i.categoryId !== undefined) p.category_id = i.categoryId
   if (i.date !== undefined) p.date = i.date
   if (i.notes !== undefined) p.notes = i.notes
+  return p
+}
+
+/* ---------- Family invites ---------- */
+export function toFamilyInvite(r: FamilyInviteRow): FamilyInvite {
+  return {
+    id: r.id,
+    familyId: r.family_id,
+    email: r.email,
+    role: r.role as MemberRole,
+    acceptedAt: r.accepted_at,
+    createdAt: r.created_at,
+  }
+}
+
+export function familyInviteInsert(familyId: string, i: FamilyInviteInput): Record<string, unknown> {
+  return { family_id: familyId, email: i.email.trim().toLowerCase(), role: i.role }
+}
+
+export function familyInviteUpdate(i: Partial<FamilyInviteInput>): Record<string, unknown> {
+  const p: Record<string, unknown> = {}
+  if (i.email !== undefined) p.email = i.email.trim().toLowerCase()
+  if (i.role !== undefined) p.role = i.role
   return p
 }

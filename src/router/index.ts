@@ -10,6 +10,18 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
   {
+    path: '/recupera-password',
+    name: 'forgot-password',
+    component: () => import('@/views/ForgotPasswordView.vue'),
+    meta: { public: true },
+  },
+  {
+    path: '/reset-password',
+    name: 'reset-password',
+    component: () => import('@/views/ResetPasswordView.vue'),
+    meta: { public: true, recovery: true },
+  },
+  {
     path: '/',
     component: () => import('@/components/app/AppShell.vue'),
     children: [
@@ -17,6 +29,13 @@ const routes: RouteRecordRaw[] = [
       { path: 'conti', name: 'accounts', component: () => import('@/views/AccountsView.vue') },
       { path: 'categorie', name: 'categories', component: () => import('@/views/CategoriesView.vue') },
       { path: 'ricorrenti', name: 'recurring', component: () => import('@/views/RecurringView.vue') },
+      {
+        path: 'gestione',
+        name: 'admin',
+        component: () => import('@/views/AdminView.vue'),
+        meta: { requiresAdmin: true },
+      },
+      { path: 'profilo', name: 'profile', component: () => import('@/views/ProfileView.vue') },
     ],
   },
   {

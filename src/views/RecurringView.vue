@@ -7,6 +7,7 @@ import PageHeader from '@/components/app/PageHeader.vue'
 import EmptyState from '@/components/app/EmptyState.vue'
 import RecurringCard from '@/components/app/RecurringCard.vue'
 import RecurringFormDialog from '@/components/app/RecurringFormDialog.vue'
+import ListTransition from '@/components/app/ListTransition.vue'
 import type { RecurringExpense } from '@/types'
 import { useRecurringStore } from '@/stores/recurring.store'
 
@@ -51,14 +52,14 @@ function openEdit(item: RecurringExpense): void {
       <Skeleton v-for="i in 5" :key="i" class="h-[68px] w-full rounded-2xl" />
     </div>
 
-    <div v-else-if="sortedItems.length" class="space-y-2.5">
+    <ListTransition v-else-if="sortedItems.length">
       <RecurringCard
         v-for="item in sortedItems"
         :key="item.id"
         :item="item"
         @select="openEdit(item)"
       />
-    </div>
+    </ListTransition>
 
     <EmptyState
       v-else

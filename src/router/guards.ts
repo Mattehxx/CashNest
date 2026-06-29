@@ -12,6 +12,12 @@ export const authGuard: NavigationGuard = async (to) => {
   const auth = useAuthStore()
   await auth.init()
 
+  // La pagina di reset password (link di recupero) è sempre accessibile,
+  // anche con la sessione temporanea creata dal token di recupero.
+  if (to.meta.recovery === true) {
+    return true
+  }
+
   const isPublic = to.meta.public === true
 
   if (!auth.isAuthenticated) {
@@ -32,6 +38,10 @@ export const authGuard: NavigationGuard = async (to) => {
   }
 
   if (to.name === 'no-family') {
+    return { name: 'dashboard' }
+  }
+
+  if (to.meta.requiresAdmin === true && !family.isAdmin) {
     return { name: 'dashboard' }
   }
 

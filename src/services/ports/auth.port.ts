@@ -24,6 +24,10 @@ export interface AuthPort {
   /** Restituisce l'utente se la sessione è attiva, oppure null se serve confermare l'email. */
   signUp(credentials: SignUpCredentials): Promise<AuthUser | null>
   signOut(): Promise<void>
+  /** Invia l'email per reimpostare la password. */
+  resetPassword(email: string): Promise<void>
+  /** Imposta una nuova password per l'utente con sessione attiva (es. da link di recupero). */
+  updatePassword(newPassword: string): Promise<void>
   /** Registra un listener sui cambi di sessione. Restituisce la funzione di disiscrizione. */
   onAuthChange(callback: (user: AuthUser | null) => void): () => void
 }

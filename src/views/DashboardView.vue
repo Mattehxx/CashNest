@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { LogOutIcon, RepeatIcon, TagIcon, WalletIcon } from '@lucide/vue'
+import { LogOutIcon, RepeatIcon, SettingsIcon, TagIcon, UserIcon, WalletIcon } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import RecurringCard from '@/components/app/RecurringCard.vue'
+import ListTransition from '@/components/app/ListTransition.vue'
+import BreakdownList from '@/components/app/BreakdownList.vue'
+import FamilySwitcher from '@/components/app/FamilySwitcher.vue'
 import { formatCurrency } from '@/composables/useCurrency'
 import { toMonthlyAmount } from '@/composables/useFrequency'
+import { useRecurringInsights } from '@/composables/useRecurringInsights'
 import { useAuthStore } from '@/stores/auth.store'
 import { useFamilyStore } from '@/stores/family.store'
 import { useAccountsStore } from '@/stores/accounts.store'
@@ -18,6 +22,8 @@ const family = useFamilyStore()
 const accounts = useAccountsStore()
 const categories = useCategoriesStore()
 const recurring = useRecurringStore()
+const { activeItems, categoryBreakdown, accountBreakdown } = useRecurringInsights()
+const breakdownView = ref<'category' | 'account'>('category')
 
 const monthlyTotal = computed(() =>
   recurring.items
@@ -56,10 +62,31 @@ async function logout(): Promise<void> {
         <p class="text-sm text-muted-foreground">Bentornato</p>
         <h1 class="truncate text-2xl font-bold capitalize">{{ greetingName }}</h1>
       </div>
-      <Button variant="ghost" size="icon" class="size-10" aria-label="Esci" @click="logout">
-        <LogOutIcon class="size-5" />
-      </Button>
+      <div class="flex items-center gap-1">
+        <Button as-child variant="ghost" size="icon" class="size-10" aria-label="Profilo">
+          <RouterLink :to="{ name: 'profile' }">
+            <UserIcon class="size-5" />
+          </RouterLink>
+        </Button>
+        <Button
+          v-if="family.isAdmin"
+          as-child
+          variant="ghost"
+          size="icon"
+          class="size-10"
+          aria-label="Gestione"
+        >
+          <RouterLink :to="{ name: 'admin' }">
+            <SettingsIcon class="size-5" />
+          </RouterLink>
+        </Button>
+        <Button variant="ghost" size="icon" class="size-10" aria-label="Esci" @click="logout">
+          <LogOutIcon class="size-5" />
+        </Button>
+      </div>
     </header>
+
+    <FamilySwitcher class="mb-8" />
 
     <div class="mb-5 rounded-3xl bg-primary p-5 text-primary-foreground shadow-sm">
       <p class="text-sm opacity-90">Spese ricorrenti stimate</p>
@@ -69,6 +96,33 @@ async function logout(): Promise<void> {
       <p class="mt-1 text-sm opacity-80">
         {{ activeCount }} {{ activeCount === 1 ? 'voce attiva' : 'voci attive' }}
       </p>
+    </div>
+
+    <div v-if="activeItems.length" class="mb-5 rounded-3xl border border-border bg-card p-4">
+      <div class="mb-4 flex items-center justify-between gap-2">
+        <h2 class="font-semibold">Ripartizione mensile</h2>
+        <div class="flex rounded-lg bg-muted p-0.5 text-sm">
+          <button
+            type="button"
+            class="rounded-md px-3 py-1 font-medium transition"
+            :class="breakdownView === 'category' ? 'bg-background shadow-sm' : 'text-muted-foreground'"
+            @click="breakdownView = 'category'"
+          >
+            Categoria
+          </button>
+          <button
+            type="button"
+            class="rounded-md px-3 py-1 font-medium transition"
+            :class="breakdownView === 'account' ? 'bg-background shadow-sm' : 'text-muted-foreground'"
+            @click="breakdownView = 'account'"
+          >
+            Conto
+          </button>
+        </div>
+      </div>
+      <BreakdownList
+        :rows="breakdownView === 'category' ? categoryBreakdown : accountBreakdown"
+      />
     </div>
 
     <div class="mb-6 grid grid-cols-3 gap-3">
@@ -94,14 +148,14 @@ async function logout(): Promise<void> {
         </RouterLink>
       </div>
 
-      <div v-if="recentRecurring.length" class="space-y-2.5">
+      <ListTransition v-if="recentRecurring.length">
         <RecurringCard
           v-for="r in recentRecurring"
           :key="r.id"
           :item="r"
           @select="router.push({ name: 'recurring' })"
         />
-      </div>
+      </ListTransition>
       <p
         v-else
         class="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground"
