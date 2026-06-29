@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { LogOutIcon, RepeatIcon, TagIcon, WalletIcon } from '@lucide/vue'
+import { LogOutIcon, RepeatIcon, SettingsIcon, TagIcon, WalletIcon } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import RecurringCard from '@/components/app/RecurringCard.vue'
 import { formatCurrency } from '@/composables/useCurrency'
@@ -56,9 +56,23 @@ async function logout(): Promise<void> {
         <p class="text-sm text-muted-foreground">Bentornato</p>
         <h1 class="truncate text-2xl font-bold capitalize">{{ greetingName }}</h1>
       </div>
-      <Button variant="ghost" size="icon" class="size-10" aria-label="Esci" @click="logout">
-        <LogOutIcon class="size-5" />
-      </Button>
+      <div class="flex items-center gap-1">
+        <Button
+          v-if="family.isAdmin"
+          as-child
+          variant="ghost"
+          size="icon"
+          class="size-10"
+          aria-label="Gestione"
+        >
+          <RouterLink :to="{ name: 'admin' }">
+            <SettingsIcon class="size-5" />
+          </RouterLink>
+        </Button>
+        <Button variant="ghost" size="icon" class="size-10" aria-label="Esci" @click="logout">
+          <LogOutIcon class="size-5" />
+        </Button>
+      </div>
     </header>
 
     <div class="mb-5 rounded-3xl bg-primary p-5 text-primary-foreground shadow-sm">

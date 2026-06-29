@@ -35,5 +35,9 @@ export const authGuard: NavigationGuard = async (to) => {
     return { name: 'dashboard' }
   }
 
+  if (to.meta.requiresAdmin === true && !family.isAdmin) {
+    return { name: 'dashboard' }
+  }
+
   return true
 }

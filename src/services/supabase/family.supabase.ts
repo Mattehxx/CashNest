@@ -12,7 +12,13 @@ interface MemberJoinRow {
   family_id: string
   profile_id: string
   role: string
-  profiles: { id: string; full_name: string | null; avatar: string | null; created_at: string } | null
+  profiles: {
+    id: string
+    full_name: string | null
+    email: string | null
+    avatar: string | null
+    created_at: string
+  } | null
 }
 
 export function createSupabaseFamilyRepository(): FamilyRepository {
@@ -55,11 +61,30 @@ export function createSupabaseFamilyRepository(): FamilyRepository {
           ? {
               id: m.profiles.id,
               fullName: m.profiles.full_name,
+              email: m.profiles.email,
               avatar: m.profiles.avatar,
               createdAt: m.profiles.created_at,
             }
           : null,
       }))
+    },
+
+    async renameFamily(familyId, name) {
+      const { error } = await supabase.from('families').update({ name }).eq('id', familyId)
+      if (error) throw new Error(error.message)
+    },
+
+    async updateMemberRole(memberId, role) {
+      const { error } = await supabase
+        .from('family_members')
+        .update({ role })
+        .eq('id', memberId)
+      if (error) throw new Error(error.message)
+    },
+
+    async removeMember(memberId) {
+      const { error } = await supabase.from('family_members').delete().eq('id', memberId)
+      if (error) throw new Error(error.message)
     },
   }
 }

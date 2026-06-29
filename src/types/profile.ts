@@ -3,6 +3,7 @@ import type { MemberRole } from './enums'
 export interface Profile {
   id: string
   fullName: string | null
+  email: string | null
   avatar: string | null
   createdAt: string
 }

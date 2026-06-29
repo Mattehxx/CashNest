@@ -17,6 +17,12 @@ const routes: RouteRecordRaw[] = [
       { path: 'conti', name: 'accounts', component: () => import('@/views/AccountsView.vue') },
       { path: 'categorie', name: 'categories', component: () => import('@/views/CategoriesView.vue') },
       { path: 'ricorrenti', name: 'recurring', component: () => import('@/views/RecurringView.vue') },
+      {
+        path: 'gestione',
+        name: 'admin',
+        component: () => import('@/views/AdminView.vue'),
+        meta: { requiresAdmin: true },
+      },
     ],
   },
   {

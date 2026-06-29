@@ -5,6 +5,8 @@ import type {
   CategoryInput,
   Expense,
   ExpenseInput,
+  FamilyInvite,
+  FamilyInviteInput,
   RecurringExpense,
   RecurringExpenseInput,
 } from '@/types'
@@ -26,3 +28,4 @@ export type AccountsRepository = CrudRepository<Account, AccountInput>
 export type CategoriesRepository = CrudRepository<Category, CategoryInput>
 export type RecurringExpensesRepository = CrudRepository<RecurringExpense, RecurringExpenseInput>
 export type ExpensesRepository = CrudRepository<Expense, ExpenseInput>
+export type InvitesRepository = CrudRepository<FamilyInvite, FamilyInviteInput>

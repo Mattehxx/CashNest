@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useServices } from '@/services'
 import type { CurrentFamily } from '@/services'
-import type { FamilyMember } from '@/types'
+import type { FamilyMember, MemberRole } from '@/types'
 
 export const useFamilyStore = defineStore('family', () => {
   const current = ref<CurrentFamily | null>(null)
@@ -27,11 +27,48 @@ export const useFamilyStore = defineStore('family', () => {
     }
   }
 
+  async function reloadMembers(): Promise<void> {
+    if (current.value) {
+      members.value = await useServices().family.getMembers(current.value.family.id)
+    }
+  }
+
+  async function rename(name: string): Promise<void> {
+    if (!current.value) return
+    await useServices().family.renameFamily(current.value.family.id, name)
+    current.value = { ...current.value, family: { ...current.value.family, name } }
+  }
+
+  async function updateMemberRole(memberId: string, role: MemberRole): Promise<void> {
+    await useServices().family.updateMemberRole(memberId, role)
+    await reloadMembers()
+  }
+
+  async function removeMember(memberId: string): Promise<void> {
+    await useServices().family.removeMember(memberId)
+    await reloadMembers()
+  }
+
   function reset(): void {
     current.value = null
     members.value = []
     loaded.value = false
   }
 
-  return { current, members, loading, loaded, familyId, familyName, hasFamily, isAdmin, load, reset }
+  return {
+    current,
+    members,
+    loading,
+    loaded,
+    familyId,
+    familyName,
+    hasFamily,
+    isAdmin,
+    load,
+    reloadMembers,
+    rename,
+    updateMemberRole,
+    removeMember,
+    reset,
+  }
 })
